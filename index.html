@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>メール宛先セミコロン作成ツール</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-light: #eff6ff;
+      --highlight: #fef08a;
+      --highlight-border: #facc15;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --success: #16a34a;
+      --warning: #ea580c;
+      --radius: 6px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.4;
+      height: 100vh;
+      box-sizing: border-box;
+      padding: 8px 14px;
+      overflow: hidden; /* body全体のスクロールを抑止 */
+      display: flex;
+      flex-direction: column;
+    }
+
+    @media (max-height: 580px) {
+      body {
+        height: auto;
+        overflow-y: auto; /* 極端に画面高が小さい場合のセーフティネット */
+      }
+    }
+
+    .container {
+      max-width: 1440px;
+      width: 100%;
+      height: 100%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    header {
+      margin-bottom: 6px;
+      flex-shrink: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* 縦構成レイアウト */
+    .layout {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    }
+
+    .card-title {
+      font-size: 0.925rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .title-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ボタン共通 */
+    button {
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 5px 10px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      border-radius: var(--radius);
+      border: 1px solid transparent;
+      transition: all 0.15s ease-in-out;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
+    }
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .btn-outline {
+      background-color: white;
+      border-color: var(--border);
+      color: var(--text);
+    }
+    .btn-outline:hover {
+      background-color: #f1f5f9;
+    }
+
+    .btn-outline.active {
+      background-color: var(--primary-light);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .btn-sm {
+      padding: 4px 10px;
+      font-size: 0.8rem;
+    }
+
+    .btn-xs {
+      padding: 2px 7px;
+      font-size: 0.725rem;
+      border-radius: 4px;
+    }
+
+    .status-badge {
+      display: inline-block;
+      font-size: 0.725rem;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      background: #f1f5f9;
+      color: var(--text-muted);
+      font-weight: 600;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .status-badge.active {
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+
+    /* 絞り込みバー */
+    .filter-bar {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 6px;
+      align-items: center;
+      flex-shrink: 0;
+      background: #f8fafc;
+      padding: 6px 8px;
+      border-radius: var(--radius);
+      border: 1px dashed var(--border);
+    }
+
+    .search-input {
+      flex: 1;
+      padding: 4px 8px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 0.8rem;
+      background: #fff;
+    }
+    .search-input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    /* メンバー一覧カード */
+    .member-card {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      padding: 12px 14px;
+    }
+
+    .contact-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding-right: 6px;
+    }
+
+    /* グループ関連スタイル */
+    .contact-group {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      flex-shrink: 0;
+    }
+
+    .group-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .group-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .group-title {
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .group-count-badge {
+      font-size: 0.7rem;
+      background: #e2e8f0;
+      color: var(--text-muted);
+      padding: 1px 6px;
+      border-radius: 9999px;
+      font-weight: 600;
+    }
+
+    /* メールグループ登録UI */
+    .group-ml-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 6px;
+      margin-left: 4px;
+    }
+
+    .group-ml-label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .group-email-input {
+      font-size: 0.725rem;
+      border: 1px solid transparent;
+      border-radius: 3px;
+      padding: 2px 4px;
+      width: 175px;
+      background: #f8fafc;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color: var(--text);
+    }
+    .group-email-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: #ffffff;
+    }
+    .group-email-input::placeholder {
+      color: #94a3b8;
+    }
+
+    .group-email-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 0.7rem;
+      cursor: pointer;
+      color: var(--text-muted);
+      padding: 1px 4px;
+      border-radius: 3px;
+      user-select: none;
+      transition: all 0.15s ease;
+    }
+    .group-email-action:hover {
+      background: #f1f5f9;
+    }
+    .group-email-action.checked {
+      background: var(--primary-light);
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .group-email-action.highlighted {
+      background: var(--highlight) !important;
+      animation: pulse 1s infinite alternate ease-in-out;
+    }
+
+    .group-email-checkbox {
+      width: 12px;
+      height: 12px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+
+    .group-btn-group {
+      display: flex;
+      gap: 4px;
+    }
+
+    /* 1行あたり5人分のグリッドレイアウト */
+    .group-member-list {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    @media (max-width: 960px) {
+      .group-member-list {
+        grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      }
+    }
+
+    .contact-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 8px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background-color: white;
+      transition: all 0.1s ease;
+      cursor: pointer;
+      user-select: none;
+      min-width: 0;
+    }
+
+    .contact-item:hover {
+      background-color: #f8fafc;
+      border-color: #cbd5e1;
+    }
+
+    .contact-item.checked {
+      background-color: var(--primary-light);
+      border-color: #bfdbfe;
+    }
+
+    /* ハイライト用スタイル */
+    .contact-item.highlighted {
+      background-color: var(--highlight) !important;
+      border-color: var(--highlight-border) !important;
+      box-shadow: 0 0 0 1.5px var(--highlight-border);
+      animation: pulse 1s infinite alternate ease-in-out;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      100% { transform: scale(1.01); }
+    }
+
+    .contact-priority {
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      min-width: 18px;
+      text-align: center;
+      background: #f1f5f9;
+      border-radius: 3px;
+      padding: 1px 2px;
+      flex-shrink: 0;
+    }
+
+    .contact-item.checked .contact-priority {
+      background: #dbeafe;
+      color: var(--primary);
+    }
+
+    .contact-checkbox {
+      width: 13px;
+      height: 13px;
+      accent-color: var(--primary);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .contact-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      flex: 1;
+      min-width: 0;
+      line-height: 1.2;
+    }
+
+    .contact-name {
+      font-weight: 600;
+      font-size: 0.75rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .contact-email {
+      font-size: 0.675rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    /* セミコロン区切りアドレスカード（1行構成） */
+    .email-card {
+      flex-shrink: 0;
+      padding: 6px 12px;
+    }
+
+    .email-control-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .email-title-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .email-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #0f172a;
+      white-space: nowrap;
+    }
+
+    .email-input-wrapper {
+      flex: 1;
+      min-width: 0;
+      position: relative;
+    }
+
+    /* 1行表示＆横スクロールtextarea */
+    #email-input {
+      width: 100%;
+      height: 42px;
+      min-height: 42px;
+      max-height: 42px;
+      padding: 6px 8px 4px 8px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 0.825rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      white-space: nowrap;
+      overflow-x: auto;
+      overflow-y: hidden;
+      resize: none;
+      line-height: 20px;
+      scrollbar-width: thin;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    #email-input::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    #email-input::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 3px;
+    }
+
+    #email-input::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
+
+    #email-input::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    #email-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+    }
+
+    .email-btn-group {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .unmatched-notice {
+      margin-top: 4px;
+      padding: 3px 8px;
+      background: #fff7ed;
+      border: 1px solid #ffedd5;
+      border-radius: 4px;
+      color: var(--warning);
+      font-size: 0.75rem;
+      display: none;
+    }
+
+    .empty-search-msg {
+      text-align: center;
+      color: var(--text-muted);
+      padding: 16px;
+      font-size: 0.825rem;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #1e293b;
+      color: white;
+      padding: 8px 14px;
+      border-radius: var(--radius);
+      font-size: 0.8rem;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.25s, transform 0.25s;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* 設定アコーディオン */
+    .settings-accordion {
+      flex-shrink: 0;
+      margin-top: 0;
+    }
+
+    .settings-accordion summary {
+      cursor: pointer;
+      font-size: 0.775rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      padding: 2px 0;
+      user-select: none;
+    }
+
+    .settings-accordion summary:hover {
+      color: var(--text);
+    }
+
+    .settings-body {
+      padding: 8px 12px;
+      margin-top: 4px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .help-text {
+      font-size: 0.725rem;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>✉️ AddressSync</h1>
+    </header>
+
+    <div class="layout">
+      <!-- 1. メンバー一覧（最上部・メイン領域） -->
+      <div class="card member-card">
+        <div class="card-title">
+          <div class="title-left">
+            <span>メンバー一覧</span>
+            <button id="btn-toggle-filter" class="btn-outline btn-xs" type="button" title="絞り込みバーの表示/非表示">🔍 絞り込み</button>
+          </div>
+        </div>
+
+        <!-- 絞り込みバー: デフォルト非表示 -->
+        <div id="filter-bar" class="filter-bar" style="display: none;">
+          <input type="text" id="search-filter" class="search-input" placeholder="名前またはメールアドレスで絞り込み...">
+          <button id="btn-clear-filter" class="btn-outline btn-xs" type="button" title="クリアして閉じる">✕</button>
+        </div>
+
+        <div id="contact-list" class="contact-list">
+          <!-- JSでグループごとにレンダリング -->
+        </div>
+      </div>
+
+      <!-- 2. セミコロン区切りアドレス部（1行表示） -->
+      <div class="card email-card">
+        <div class="email-control-row">
+          <div class="email-title-group">
+            <span class="email-label">宛先</span>
+            <span id="selected-count" class="status-badge">0件 選択中</span>
+          </div>
+
+          <div class="email-input-wrapper">
+            <textarea
+              id="email-input"
+              rows="1"
+              wrap="off"
+              placeholder="セミコロン区切りのメールアドレスが表示されます。直接入力・貼り付けで自動チェックも可能です。"
+            ></textarea>
+          </div>
+
+          <div class="email-btn-group">
+            <button id="btn-copy" class="btn-primary btn-sm" type="button">
+              📋 コピー
+            </button>
+            <button id="btn-clear" class="btn-outline btn-sm" type="button">
+              🗑️ クリア
+            </button>
+          </div>
+        </div>
+
+        <div id="unmatched-notice" class="unmatched-notice">
+          <strong>⚠️ 登録外のアドレスが含まれています:</strong>
+          <span id="unmatched-list" style="margin-left: 6px; word-break: break-all;"></span>
+        </div>
+      </div>
+
+      <!-- 3. メンバーデータの編集・確認（最下部） -->
+      <details class="settings-accordion">
+        <summary>⚙️ メンバーデータの編集・確認（クリックで展開）</summary>
+        <div class="settings-body card">
+          <p class="help-text" style="margin-bottom: 6px;">
+            JSON形式でグループおよびメンバーデータを自由に編集・保存できます。<code>groupEmail</code> でメールグループを登録できます（未入力可）。
+          </p>
+          <textarea id="json-editor" style="width: 100%; height: 90px; font-size: 0.775rem; font-family: ui-monospace, monospace; padding: 6px; border: 1px solid var(--border); border-radius: var(--radius); resize: vertical;"></textarea>
+          <div style="display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; align-items: center;">
+            <button id="btn-save-json" class="btn-primary btn-xs" type="button">💾 データを保存して反映</button>
+            <button id="btn-download-json" class="btn-outline btn-xs" type="button">📥 JSONダウンロード</button>
+            <button id="btn-load-json" class="btn-outline btn-xs" type="button">📂 JSON読み込み</button>
+            <input type="file" id="file-load-json" accept=".json,application/json" style="display: none;">
+            <button id="btn-reset-json" class="btn-outline btn-xs" type="button" style="margin-left: auto;">初期データに戻す</button>
+          </div>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <div id="toast" class="toast">コピーしました！</div>
+
+  <script>
+    // デフォルトのグループ別連絡先リスト（上から順に優先結合）
+    // groupEmail は未入力可（空文字列でも動作）
+    const DEFAULT_GROUPS = [
+      {
+        group: "役職者・管理職",
+        groupEmail: "",
+        members: [
+          { id: "1", name: "山田 太郎 (部長)", email: "taro.yamada@example.com" },
+          { id: "2", name: "佐藤 花子 (課長)", email: "hanako.sato@example.com" }
+        ]
+      },
+      {
+        group: "開発チーム",
+        groupEmail: "dev-team@example.com",
+        members: [
+          { id: "3", name: "鈴木 一郎 (リーダー)", email: "ichiro.suzuki@example.com" },
+          { id: "4", name: "田中 次郎", email: "jiro.tanaka@example.com" },
+          { id: "5", name: "高橋 三郎", email: "saburo.takahashi@example.com" },
+          { id: "6", name: "渡辺 恵子", email: "keiko.watanabe@example.com" }
+        ]
+      },
+      {
+        group: "営業・企画チーム",
+        groupEmail: "",
+        members: [
+          { id: "7", name: "伊藤 健", email: "ken.ito@example.com" },
+          { id: "8", name: "山本 さくら", email: "sakura.yamamoto@example.com" },
+          { id: "9", name: "中村 勇", email: "isamu.nakamura@example.com" },
+          { id: "10", name: "小林 美香", email: "mika.kobayashi@example.com" }
+        ]
+      }
+    ];
+
+    // LocalStorageから取得、なければ初期値
+    let groups = [];
+    try {
+      const saved = localStorage.getItem("mail_tool_contacts");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          if (parsed[0].members) {
+            groups = parsed;
+          } else if (parsed[0].email) {
+            // 旧バージョンのフラット配列からの移行対応
+            groups = [{ group: "全メンバー", groupEmail: "", members: parsed }];
+          } else {
+            groups = JSON.parse(JSON.stringify(DEFAULT_GROUPS));
+          }
+        } else {
+          groups = JSON.parse(JSON.stringify(DEFAULT_GROUPS));
+        }
+      } else {
+        groups = JSON.parse(JSON.stringify(DEFAULT_GROUPS));
+      }
+    } catch (e) {
+      groups = JSON.parse(JSON.stringify(DEFAULT_GROUPS));
+    }
+
+    // groupsのデータをLocalStorageに保存
+    function saveGroups() {
+      localStorage.setItem("mail_tool_contacts", JSON.stringify(groups));
+      initJsonEditor();
+    }
+
+    // 全メンバーのフラットな配列を取得するヘルパー
+    function getAllMembers() {
+      const list = [];
+      groups.forEach(g => {
+        if (Array.isArray(g.members)) {
+          g.members.forEach(m => list.push(m));
+        }
+      });
+      return list;
+    }
+
+    // 現在チェックされている連絡先ID・グループメールIDのSet
+    // メンバーID: "1", "2" ... / グループメールID: "grp_email_0", "grp_email_1" ...
+    const selectedIds = new Set();
+    // 入力によってハイライトされたIDのSet
+    const highlightedIds = new Set();
+
+    // DOM要素
+    const contactListEl = document.getElementById("contact-list");
+    const emailInputEl = document.getElementById("email-input");
+    const selectedCountEl = document.getElementById("selected-count");
+    const unmatchedNoticeEl = document.getElementById("unmatched-notice");
+    const unmatchedListEl = document.getElementById("unmatched-list");
+    const searchFilterEl = document.getElementById("search-filter");
+    const filterBarEl = document.getElementById("filter-bar");
+    const btnToggleFilterEl = document.getElementById("btn-toggle-filter");
+    const btnClearFilterEl = document.getElementById("btn-clear-filter");
+    const jsonEditorEl = document.getElementById("json-editor");
+    const toastEl = document.getElementById("toast");
+
+    // 無限ループ防止フラグ
+    let isUpdatingFromText = false;
+
+    // トースト通知表示
+    function showToast(message) {
+      toastEl.textContent = message;
+      toastEl.classList.add("show");
+      setTimeout(() => {
+        toastEl.classList.remove("show");
+      }, 2000);
+    }
+
+    // 絞り込みバーの開閉制御
+    btnToggleFilterEl.addEventListener("click", () => {
+      const isHidden = filterBarEl.style.display === "none";
+      if (isHidden) {
+        filterBarEl.style.display = "flex";
+        btnToggleFilterEl.classList.add("active");
+        searchFilterEl.focus();
+      } else {
+        filterBarEl.style.display = "none";
+        if (!searchFilterEl.value.trim()) {
+          btnToggleFilterEl.classList.remove("active");
+        }
+      }
+    });
+
+    btnClearFilterEl.addEventListener("click", () => {
+      searchFilterEl.value = "";
+      filterBarEl.style.display = "none";
+      btnToggleFilterEl.classList.remove("active");
+      renderContactList();
+    });
+
+    // 1行テキストエリアでEnterキー押下時の改行を無効化
+    emailInputEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+      }
+    });
+
+    // リストの描画
+    function renderContactList() {
+      const filterText = searchFilterEl.value.trim().toLowerCase();
+      contactListEl.innerHTML = "";
+
+      let globalIndex = 0;
+      let totalVisibleMembers = 0;
+
+      groups.forEach((groupObj, groupIdx) => {
+        const groupName = groupObj.group || groupObj.groupName || `グループ ${groupIdx + 1}`;
+        const groupEmail = (groupObj.groupEmail || "").trim();
+        const members = Array.isArray(groupObj.members) ? groupObj.members : [];
+        const groupEmailId = `grp_email_${groupIdx}`;
+
+        // フィルタリング判定: メンバー名/メール、グループ名、またはグループメールアドレスに合致するか
+        const isGroupMatch = groupName.toLowerCase().includes(filterText) ||
+                             (groupEmail && groupEmail.toLowerCase().includes(filterText));
+
+        const matchingMembers = members.filter(member => {
+          if (isGroupMatch) return true;
+          return member.name.toLowerCase().includes(filterText) ||
+                 member.email.toLowerCase().includes(filterText);
+        });
+
+        if (matchingMembers.length === 0 && !isGroupMatch && filterText !== "") {
+          globalIndex += members.length;
+          return;
+        }
+
+        const groupCard = document.createElement("div");
+        groupCard.className = "contact-group";
+
+        // グループヘッダー
+        const groupHeader = document.createElement("div");
+        groupHeader.className = "group-header";
+
+        const groupTitleWrap = document.createElement("div");
+        groupTitleWrap.className = "group-title-wrap";
+
+        // グループ名と件数
+        const titleSpan = document.createElement("span");
+        titleSpan.className = "group-title";
+        titleSpan.textContent = groupName;
+
+        const countBadge = document.createElement("span");
+        countBadge.className = "group-count-badge";
+        countBadge.textContent = `${members.length}名`;
+
+        groupTitleWrap.appendChild(titleSpan);
+        groupTitleWrap.appendChild(countBadge);
+
+        // メールグループ登録領域（未入力可）
+        const groupMlWrap = document.createElement("div");
+        groupMlWrap.className = "group-ml-wrap";
+
+        const mlLabel = document.createElement("span");
+        mlLabel.className = "group-ml-label";
+        mlLabel.textContent = "メールグループ:";
+
+        const mlInput = document.createElement("input");
+        mlInput.type = "text";
+        mlInput.className = "group-email-input";
+        mlInput.placeholder = "アドレス登録(未入力可)";
+        mlInput.value = groupEmail;
+        mlInput.title = "グループ全体のメールアドレス（未入力可・変更で自動保存）";
+
+        // 入力確定時に保存
+        mlInput.addEventListener("change", (e) => {
+          const newEmail = e.target.value.trim();
+          groups[groupIdx].groupEmail = newEmail;
+          saveGroups();
+          if (!newEmail) {
+            selectedIds.delete(groupEmailId);
+            highlightedIds.delete(groupEmailId);
+          }
+          renderContactList();
+          updateUIFromSelection();
+        });
+        mlInput.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            e.target.blur();
+          }
+        });
+
+        groupMlWrap.appendChild(mlLabel);
+        groupMlWrap.appendChild(mlInput);
+
+        // メールグループが入力されている場合、宛先追加チェックボックスを表示
+        if (groupEmail) {
+          const isGroupEmailChecked = selectedIds.has(groupEmailId);
+          const isGroupEmailHighlighted = highlightedIds.has(groupEmailId);
+
+          const actionLabel = document.createElement("label");
+          actionLabel.className = `group-email-action ${isGroupEmailChecked ? "checked" : ""} ${isGroupEmailHighlighted ? "highlighted" : ""}`;
+          actionLabel.dataset.id = groupEmailId;
+          actionLabel.title = `${groupEmail} を宛先に追加`;
+
+          const actionCb = document.createElement("input");
+          actionCb.type = "checkbox";
+          actionCb.className = "group-email-checkbox";
+          actionCb.checked = isGroupEmailChecked;
+
+          actionCb.addEventListener("change", (e) => {
+            toggleContact(groupEmailId, e.target.checked);
+          });
+
+          const actionText = document.createElement("span");
+          actionText.textContent = "宛先に追加";
+
+          actionLabel.appendChild(actionCb);
+          actionLabel.appendChild(actionText);
+          groupMlWrap.appendChild(actionLabel);
+        }
+
+        groupTitleWrap.appendChild(groupMlWrap);
+
+        // グループ内 全選択/全解除ボタン
+        const groupBtnGroup = document.createElement("div");
+        groupBtnGroup.className = "group-btn-group";
+
+        const selectGroupBtn = document.createElement("button");
+        selectGroupBtn.type = "button";
+        selectGroupBtn.className = "btn-outline btn-xs";
+        selectGroupBtn.textContent = "全選択";
+        selectGroupBtn.addEventListener("click", () => {
+          members.forEach(m => selectedIds.add(m.id));
+          highlightedIds.clear();
+          updateUIFromSelection();
+        });
+
+        const deselectGroupBtn = document.createElement("button");
+        deselectGroupBtn.type = "button";
+        deselectGroupBtn.className = "btn-outline btn-xs";
+        deselectGroupBtn.textContent = "全解除";
+        deselectGroupBtn.addEventListener("click", () => {
+          members.forEach(m => {
+            selectedIds.delete(m.id);
+            highlightedIds.delete(m.id);
+          });
+          selectedIds.delete(groupEmailId);
+          highlightedIds.delete(groupEmailId);
+          updateUIFromSelection();
+        });
+
+        groupBtnGroup.appendChild(selectGroupBtn);
+        groupBtnGroup.appendChild(deselectGroupBtn);
+
+        groupHeader.appendChild(groupTitleWrap);
+        groupHeader.appendChild(groupBtnGroup);
+        groupCard.appendChild(groupHeader);
+
+        // グループ内メンバーリスト（1行5人表示）
+        const groupMemberList = document.createElement("div");
+        groupMemberList.className = "group-member-list";
+
+        members.forEach(member => {
+          globalIndex++;
+          const isMatch = isGroupMatch ||
+                          member.name.toLowerCase().includes(filterText) ||
+                          member.email.toLowerCase().includes(filterText);
+
+          if (!isMatch) return;
+          totalVisibleMembers++;
+
+          const isChecked = selectedIds.has(member.id);
+          const isHighlighted = highlightedIds.has(member.id);
+
+          const item = document.createElement("div");
+          item.className = `contact-item ${isChecked ? "checked" : ""} ${isHighlighted ? "highlighted" : ""}`;
+          item.dataset.id = member.id;
+          item.title = `${member.name} <${member.email}>`;
+
+          item.innerHTML = `
+            <div class="contact-priority">#${globalIndex}</div>
+            <input type="checkbox" class="contact-checkbox" id="cb-${member.id}" ${isChecked ? "checked" : ""}>
+            <div class="contact-info">
+              <span class="contact-name">${escapeHtml(member.name)}</span>
+              <span class="contact-email">${escapeHtml(member.email)}</span>
+            </div>
+          `;
+
+          // クリックでチェック反転
+          item.addEventListener("click", (e) => {
+            if (e.target.tagName !== "INPUT") {
+              const cb = item.querySelector(".contact-checkbox");
+              cb.checked = !cb.checked;
+            }
+            toggleContact(member.id, item.querySelector(".contact-checkbox").checked);
+          });
+
+          // チェックボックス自体の変更
+          const cb = item.querySelector(".contact-checkbox");
+          cb.addEventListener("change", (e) => {
+            toggleContact(member.id, e.target.checked);
+          });
+
+          groupMemberList.appendChild(item);
+        });
+
+        groupCard.appendChild(groupMemberList);
+        contactListEl.appendChild(groupCard);
+      });
+
+      if (totalVisibleMembers === 0 && filterText !== "") {
+        const emptyMsg = document.createElement("div");
+        emptyMsg.className = "empty-search-msg";
+        emptyMsg.textContent = "一致するメンバーが見つかりません";
+        contactListEl.appendChild(emptyMsg);
+      }
+
+      updateBadge();
+    }
+
+    // チェック状態の切り替え
+    function toggleContact(id, checked) {
+      if (checked) {
+        selectedIds.add(id);
+      } else {
+        selectedIds.delete(id);
+        highlightedIds.delete(id);
+      }
+
+      // テキスト入力由来でない場合はハイライト解除
+      if (!isUpdatingFromText) {
+        highlightedIds.delete(id);
+      }
+
+      updateUIFromSelection();
+    }
+
+    // 選択状態からテキストエリアと画面を更新
+    function updateUIFromSelection() {
+      const emails = [];
+
+      // 優先順位: 上のグループから順に結合
+      groups.forEach((groupObj, gIdx) => {
+        const groupEmailId = `grp_email_${gIdx}`;
+        const groupEmail = (groupObj.groupEmail || "").trim();
+
+        // メールグループが登録されており、選択されている場合はグループ先頭に配置
+        if (groupEmail && selectedIds.has(groupEmailId)) {
+          emails.push(groupEmail);
+        }
+
+        // グループ内メンバーの結合
+        if (Array.isArray(groupObj.members)) {
+          groupObj.members.forEach(member => {
+            if (selectedIds.has(member.id)) {
+              emails.push(member.email);
+            }
+          });
+        }
+      });
+
+      // メールアドレスをセミコロン区切りで表示
+      const joinedEmails = emails.join("; ");
+      if (emailInputEl.value !== joinedEmails && !isUpdatingFromText) {
+        emailInputEl.value = joinedEmails;
+      }
+
+      // 未登録警告はリセット（手動チェック操作時）
+      if (!isUpdatingFromText) {
+        unmatchedNoticeEl.style.display = "none";
+      }
+
+      refreshItemClasses();
+      updateBadge();
+    }
+
+    // DOM要素のクラス状態のみ更新（スクロール位置やDOM再生成を防ぐ）
+    function refreshItemClasses() {
+      // メンバーアイテム
+      const items = contactListEl.querySelectorAll(".contact-item");
+      items.forEach(item => {
+        const id = item.dataset.id;
+        const cb = item.querySelector(".contact-checkbox");
+        const isChecked = selectedIds.has(id);
+        const isHighlighted = highlightedIds.has(id);
+
+        if (cb) cb.checked = isChecked;
+        item.classList.toggle("checked", isChecked);
+        item.classList.toggle("highlighted", isHighlighted);
+      });
+
+      // メールグループアクション
+      const mlActions = contactListEl.querySelectorAll(".group-email-action");
+      mlActions.forEach(action => {
+        const id = action.dataset.id;
+        const cb = action.querySelector(".group-email-checkbox");
+        const isChecked = selectedIds.has(id);
+        const isHighlighted = highlightedIds.has(id);
+
+        if (cb) cb.checked = isChecked;
+        action.classList.toggle("checked", isChecked);
+        action.classList.toggle("highlighted", isHighlighted);
+      });
+    }
+
+    // 選択件数バッジ更新
+    function updateBadge() {
+      selectedCountEl.textContent = `${selectedIds.size}件 選択中`;
+      selectedCountEl.classList.toggle("active", selectedIds.size > 0);
+    }
+
+    // テキストエリア入力時の逆解析
+    emailInputEl.addEventListener("input", () => {
+      parseInputEmails();
+    });
+
+    function parseInputEmails() {
+      isUpdatingFromText = true;
+
+      const raw = emailInputEl.value;
+      // セミコロン、カンマ、改行などで分割してトリム
+      const tokens = raw
+        .split(/[;,\n\r]+/)
+        .map(t => t.trim())
+        .filter(t => t.length > 0);
+
+      // 小文字に正規化
+      const inputEmails = tokens.map(t => {
+        const match = t.match(/<([^>]+)>/);
+        return (match ? match[1] : t).toLowerCase();
+      });
+
+      selectedIds.clear();
+      highlightedIds.clear();
+
+      const allMembers = getAllMembers();
+      const matchedEmails = new Set();
+      const unmatchedEmails = [];
+
+      inputEmails.forEach(inEmail => {
+        let matched = false;
+
+        // メールグループとの照合
+        groups.forEach((groupObj, gIdx) => {
+          const gEmail = (groupObj.groupEmail || "").trim().toLowerCase();
+          if (gEmail && gEmail === inEmail) {
+            const gId = `grp_email_${gIdx}`;
+            selectedIds.add(gId);
+            highlightedIds.add(gId);
+            matchedEmails.add(inEmail);
+            matched = true;
+          }
+        });
+
+        // 個別メンバーとの照合
+        const found = allMembers.find(m => m.email.toLowerCase() === inEmail);
+        if (found) {
+          selectedIds.add(found.id);
+          highlightedIds.add(found.id);
+          matchedEmails.add(inEmail);
+          matched = true;
+        }
+
+        if (!matched && !unmatchedEmails.includes(inEmail)) {
+          unmatchedEmails.push(inEmail);
+        }
+      });
+
+      // 未登録アドレスの表示
+      if (unmatchedEmails.length > 0) {
+        unmatchedNoticeEl.style.display = "block";
+        unmatchedListEl.textContent = unmatchedEmails.join(", ");
+      } else {
+        unmatchedNoticeEl.style.display = "none";
+      }
+
+      refreshItemClasses();
+      updateBadge();
+
+      isUpdatingFromText = false;
+    }
+
+    // コピー
+    document.getElementById("btn-copy").addEventListener("click", () => {
+      if (!emailInputEl.value.trim()) {
+        showToast("コピーするアドレスがありません");
+        return;
+      }
+      navigator.clipboard.writeText(emailInputEl.value).then(() => {
+        showToast("クリップボードにコピーしました！");
+      }).catch(() => {
+        emailInputEl.select();
+        document.execCommand("copy");
+        showToast("クリップボードにコピーしました！");
+      });
+    });
+
+    // クリア
+    document.getElementById("btn-clear").addEventListener("click", () => {
+      selectedIds.clear();
+      highlightedIds.clear();
+      emailInputEl.value = "";
+      unmatchedNoticeEl.style.display = "none";
+      refreshItemClasses();
+      updateBadge();
+    });
+
+    // 検索フィルター入力イベント
+    searchFilterEl.addEventListener("input", () => {
+      renderContactList();
+      if (searchFilterEl.value.trim()) {
+        btnToggleFilterEl.classList.add("active");
+      }
+    });
+
+    // JSONエディタの初期化と検証
+    function initJsonEditor() {
+      jsonEditorEl.value = JSON.stringify(groups, null, 2);
+    }
+
+    function validateAndParseJson(jsonString) {
+      const parsed = JSON.parse(jsonString);
+      if (!Array.isArray(parsed)) throw new Error("JSONのルートはグループの配列である必要があります。");
+
+      for (let i = 0; i < parsed.length; i++) {
+        const g = parsed[i];
+        if (typeof g !== "object" || g === null) {
+          throw new Error(`グループ [${i}] が有効なオブジェクトではありません。`);
+        }
+        if (!Array.isArray(g.members)) {
+          throw new Error(`グループ "${g.group || g.groupName || i + 1}" に members 配列が存在しません。`);
+        }
+        for (let j = 0; j < g.members.length; j++) {
+          const m = g.members[j];
+          if (!m.id || !m.name || !m.email) {
+            throw new Error(`グループ "${g.group || g.groupName || i + 1}" のメンバー [${j + 1}] に id, name, email のいずれかが不足しています。`);
+          }
+        }
+      }
+      return parsed;
+    }
+
+    // データを保存して反映
+    document.getElementById("btn-save-json").addEventListener("click", () => {
+      try {
+        const parsed = validateAndParseJson(jsonEditorEl.value);
+        groups = parsed;
+        saveGroups();
+        renderContactList();
+        updateUIFromSelection();
+        showToast("メンバーデータを保存しました");
+      } catch (e) {
+        alert("JSONのフォーマットが正しくありません:\n" + e.message);
+      }
+    });
+
+    // JSONダウンロード機能
+    document.getElementById("btn-download-json").addEventListener("click", () => {
+      try {
+        let content = jsonEditorEl.value.trim();
+        if (!content) {
+          content = JSON.stringify(groups, null, 2);
+        }
+        // ダウンロード前に構文チェック
+        JSON.parse(content);
+
+        const blob = new Blob([content], { type: "application/json;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "address_sync_contacts.json";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast("JSONファイルをダウンロードしました");
+      } catch (e) {
+        alert("JSONフォーマットが正しくないためダウンロードできません:\n" + e.message);
+      }
+    });
+
+    // JSONローディング（インポート）機能
+    const fileLoadJsonEl = document.getElementById("file-load-json");
+    document.getElementById("btn-load-json").addEventListener("click", () => {
+      fileLoadJsonEl.value = "";
+      fileLoadJsonEl.click();
+    });
+
+    fileLoadJsonEl.addEventListener("change", (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const content = event.target.result;
+          const parsed = validateAndParseJson(content);
+          groups = parsed;
+          saveGroups();
+          renderContactList();
+          updateUIFromSelection();
+          showToast("JSONファイルを読み込み、反映しました！");
+        } catch (err) {
+          alert("JSONファイルの読み込みに失敗しました:\n" + err.message);
+        }
+      };
+      reader.onerror = () => {
+        alert("ファイルの読み込み中にエラーが発生しました。");
+      };
+      reader.readAsText(file, "UTF-8");
+    });
+
+    // 初期データに戻す
+    document.getElementById("btn-reset-json").addEventListener("click", () => {
+      if (confirm("初期データにリセットしますか？")) {
+        groups = JSON.parse(JSON.stringify(DEFAULT_GROUPS));
+        localStorage.removeItem("mail_tool_contacts");
+        initJsonEditor();
+        renderContactList();
+        updateUIFromSelection();
+        showToast("初期データにリセットしました");
+      }
+    });
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    // 初期実行
+    renderContactList();
+    initJsonEditor();
+  </script>
+</body>
+</html>
