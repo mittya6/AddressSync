@@ -869,44 +869,42 @@
         groupTitleWrap.appendChild(titleSpan);
         groupTitleWrap.appendChild(countBadge);
 
-        // メールグループ登録領域（未入力可）
-        const groupMlWrap = document.createElement("div");
-        groupMlWrap.className = "group-ml-wrap";
-
-        const mlLabel = document.createElement("span");
-        mlLabel.className = "group-ml-label";
-        mlLabel.textContent = "メールグループ:";
-
-        const mlInput = document.createElement("input");
-        mlInput.type = "text";
-        mlInput.className = "group-email-input";
-        mlInput.placeholder = "アドレス登録(未入力可)";
-        mlInput.value = groupEmail;
-        mlInput.title = "グループ全体のメールアドレス（未入力可・変更で自動保存）";
-
-        // 入力確定時に保存
-        mlInput.addEventListener("change", (e) => {
-          const newEmail = e.target.value.trim();
-          groups[groupIdx].groupEmail = newEmail;
-          saveGroups();
-          if (!newEmail) {
-            selectedIds.delete(groupEmailId);
-            highlightedIds.delete(groupEmailId);
-          }
-          renderContactList();
-          updateUIFromSelection();
-        });
-        mlInput.addEventListener("keydown", (e) => {
-          if (e.key === "Enter") {
-            e.target.blur();
-          }
-        });
-
-        groupMlWrap.appendChild(mlLabel);
-        groupMlWrap.appendChild(mlInput);
-
-        // メールグループが入力されている場合、宛先追加チェックボックスを表示
+        // メールグループが設定されている場合のみ表示
         if (groupEmail) {
+          const groupMlWrap = document.createElement("div");
+          groupMlWrap.className = "group-ml-wrap";
+
+          const mlLabel = document.createElement("span");
+          mlLabel.className = "group-ml-label";
+          mlLabel.textContent = "メールグループ:";
+
+          const mlInput = document.createElement("input");
+          mlInput.type = "text";
+          mlInput.className = "group-email-input";
+          mlInput.value = groupEmail;
+          mlInput.title = "グループ全体のメールアドレス（変更で自動保存、空にして確定で削除）";
+
+          // 入力確定時に保存
+          mlInput.addEventListener("change", (e) => {
+            const newEmail = e.target.value.trim();
+            groups[groupIdx].groupEmail = newEmail;
+            saveGroups();
+            if (!newEmail) {
+              selectedIds.delete(groupEmailId);
+              highlightedIds.delete(groupEmailId);
+            }
+            renderContactList();
+            updateUIFromSelection();
+          });
+          mlInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+              e.target.blur();
+            }
+          });
+
+          groupMlWrap.appendChild(mlLabel);
+          groupMlWrap.appendChild(mlInput);
+
           const isGroupEmailChecked = selectedIds.has(groupEmailId);
           const isGroupEmailHighlighted = highlightedIds.has(groupEmailId);
 
@@ -930,9 +928,9 @@
           actionLabel.appendChild(actionCb);
           actionLabel.appendChild(actionText);
           groupMlWrap.appendChild(actionLabel);
-        }
 
-        groupTitleWrap.appendChild(groupMlWrap);
+          groupTitleWrap.appendChild(groupMlWrap);
+        }
 
         // グループ内 全選択/全解除ボタン
         const groupBtnGroup = document.createElement("div");
