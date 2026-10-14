@@ -9,13 +9,16 @@
       --primary: #2563eb;
       --primary-hover: #1d4ed8;
       --primary-light: #eff6ff;
+      --primary-border: #bfdbfe;
+      --primary-dark: #1e40af;
       --highlight: #fef08a;
       --highlight-border: #facc15;
-      --bg: #f8fafc;
+      --bg: #f1f5f9;
       --surface: #ffffff;
-      --text: #1e293b;
+      --text: #0f172a;
       --text-muted: #64748b;
-      --border: #e2e8f0;
+      --border: #cbd5e1;
+      --border-subtle: #e2e8f0;
       --success: #16a34a;
       --warning: #ea580c;
       --radius: 6px;
@@ -40,7 +43,7 @@
       line-height: 1.4;
       height: 100vh;
       box-sizing: border-box;
-      padding: 8px 14px;
+      padding: 8px 16px;
       overflow: hidden; /* body全体のスクロールを抑止 */
       display: flex;
       flex-direction: column;
@@ -74,7 +77,7 @@
     h1 {
       font-size: 1.15rem;
       font-weight: 700;
-      color: #0f172a;
+      color: var(--primary-dark);
       display: flex;
       align-items: center;
       gap: 6px;
@@ -84,7 +87,7 @@
     .layout {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 8px;
       flex: 1;
       min-height: 0;
     }
@@ -92,9 +95,9 @@
     .card {
       background: var(--surface);
       border-radius: var(--radius);
-      border: 1px solid var(--border);
-      padding: 10px 12px;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+      border: 1px solid var(--border-subtle);
+      padding: 10px 14px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     }
 
     .card-title {
@@ -134,9 +137,11 @@
     .btn-primary {
       background-color: var(--primary);
       color: white;
+      box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
     }
     .btn-primary:hover {
       background-color: var(--primary-hover);
+      box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
     }
 
     .btn-outline {
@@ -146,6 +151,7 @@
     }
     .btn-outline:hover {
       background-color: #f1f5f9;
+      border-color: #94a3b8;
     }
 
     .btn-outline.active {
@@ -155,8 +161,9 @@
     }
 
     .btn-sm {
-      padding: 4px 10px;
+      padding: 5px 12px;
       font-size: 0.8rem;
+      font-weight: 600;
     }
 
     .btn-xs {
@@ -170,34 +177,36 @@
       font-size: 0.725rem;
       padding: 2px 8px;
       border-radius: 9999px;
-      background: #f1f5f9;
+      background: #e2e8f0;
       color: var(--text-muted);
       font-weight: 600;
       white-space: nowrap;
       flex-shrink: 0;
+      transition: all 0.2s ease;
     }
 
     .status-badge.active {
-      background: var(--primary-light);
-      color: var(--primary);
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 1px 2px rgba(37, 99, 235, 0.25);
     }
 
     /* 絞り込みバー */
     .filter-bar {
       display: flex;
       gap: 6px;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
       align-items: center;
       flex-shrink: 0;
       background: #f8fafc;
-      padding: 6px 8px;
+      padding: 6px 10px;
       border-radius: var(--radius);
       border: 1px dashed var(--border);
     }
 
     .search-input {
       flex: 1;
-      padding: 4px 8px;
+      padding: 5px 10px;
       border: 1px solid var(--border);
       border-radius: 4px;
       font-size: 0.8rem;
@@ -206,6 +215,7 @@
     .search-input:focus {
       outline: none;
       border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
     }
 
     /* メンバー一覧カード */
@@ -214,7 +224,7 @@
       min-height: 0;
       display: flex;
       flex-direction: column;
-      padding: 12px 14px;
+      padding: 10px 14px;
     }
 
     .contact-list {
@@ -229,10 +239,12 @@
 
     /* グループ関連スタイル */
     .contact-group {
-      background: #f8fafc;
-      border: 1px solid var(--border);
+      background: #ffffff;
+      border: 1px solid var(--border-subtle);
+      border-left: 4px solid var(--primary);
       border-radius: var(--radius);
-      padding: 10px 12px;
+      padding: 8px 12px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
       flex-shrink: 0;
     }
 
@@ -242,7 +254,7 @@
       align-items: center;
       margin-bottom: 8px;
       padding-bottom: 6px;
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid var(--border-subtle);
       flex-wrap: wrap;
       gap: 8px;
     }
@@ -262,9 +274,9 @@
 
     .group-count-badge {
       font-size: 0.7rem;
-      background: #e2e8f0;
-      color: var(--text-muted);
-      padding: 1px 6px;
+      background: #e0f2fe;
+      color: #0369a1;
+      padding: 1px 7px;
       border-radius: 9999px;
       font-weight: 600;
     }
@@ -274,34 +286,34 @@
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      background: #ffffff;
-      border: 1px solid var(--border);
+      background: #f8fafc;
+      border: 1px solid var(--border-subtle);
       border-radius: 4px;
-      padding: 1px 6px;
+      padding: 2px 6px;
       margin-left: 4px;
     }
 
     .group-ml-label {
       font-size: 0.7rem;
-      color: var(--text-muted);
+      color: #475569;
       font-weight: 600;
       white-space: nowrap;
     }
 
     .group-email-input {
       font-size: 0.725rem;
-      border: 1px solid transparent;
+      border: 1px solid var(--border);
       border-radius: 3px;
-      padding: 2px 4px;
+      padding: 2px 5px;
       width: 175px;
-      background: #f8fafc;
+      background: #ffffff;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       color: var(--text);
     }
     .group-email-input:focus {
       outline: none;
       border-color: var(--primary);
-      background: #ffffff;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
     }
     .group-email-input::placeholder {
       color: #94a3b8;
@@ -310,17 +322,18 @@
     .group-email-action {
       display: inline-flex;
       align-items: center;
-      gap: 3px;
+      gap: 4px;
       font-size: 0.7rem;
       cursor: pointer;
       color: var(--text-muted);
-      padding: 1px 4px;
+      padding: 1px 5px;
       border-radius: 3px;
       user-select: none;
       transition: all 0.15s ease;
     }
     .group-email-action:hover {
-      background: #f1f5f9;
+      background: #e2e8f0;
+      color: var(--text);
     }
     .group-email-action.checked {
       background: var(--primary-light);
@@ -333,8 +346,8 @@
     }
 
     .group-email-checkbox {
-      width: 12px;
-      height: 12px;
+      width: 13px;
+      height: 13px;
       accent-color: var(--primary);
       cursor: pointer;
     }
@@ -344,28 +357,22 @@
       gap: 4px;
     }
 
-    /* 1行あたり5人分のグリッドレイアウト */
+    /* ノートPCでの窮屈感を解消する可変グリッド */
     .group-member-list {
       display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
       gap: 6px;
-    }
-
-    @media (max-width: 960px) {
-      .group-member-list {
-        grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-      }
     }
 
     .contact-item {
       display: flex;
       align-items: center;
-      gap: 7px;
-      padding: 6px 8px;
-      border: 1px solid var(--border);
-      border-radius: 4px;
+      gap: 8px;
+      padding: 6px 9px;
+      border: 1px solid var(--border-subtle);
+      border-radius: 5px;
       background-color: white;
-      transition: all 0.1s ease;
+      transition: all 0.15s ease;
       cursor: pointer;
       user-select: none;
       min-width: 0;
@@ -373,12 +380,13 @@
 
     .contact-item:hover {
       background-color: #f8fafc;
-      border-color: #cbd5e1;
+      border-color: #94a3b8;
     }
 
     .contact-item.checked {
-      background-color: var(--primary-light);
-      border-color: #bfdbfe;
+      background-color: #eff6ff;
+      border-color: #60a5fa;
+      box-shadow: 0 0 0 1px #60a5fa;
     }
 
     /* ハイライト用スタイル */
@@ -395,14 +403,14 @@
     }
 
     .contact-priority {
-      font-size: 0.65rem;
+      font-size: 0.675rem;
       font-weight: 700;
-      color: var(--text-muted);
-      min-width: 18px;
+      color: #64748b;
+      min-width: 20px;
       text-align: center;
       background: #f1f5f9;
       border-radius: 3px;
-      padding: 1px 2px;
+      padding: 1px 3px;
       flex-shrink: 0;
     }
 
@@ -412,8 +420,8 @@
     }
 
     .contact-checkbox {
-      width: 13px;
-      height: 13px;
+      width: 14px;
+      height: 14px;
       accent-color: var(--primary);
       cursor: pointer;
       flex-shrink: 0;
@@ -425,19 +433,20 @@
       gap: 2px;
       flex: 1;
       min-width: 0;
-      line-height: 1.2;
+      line-height: 1.25;
     }
 
     .contact-name {
       font-weight: 600;
-      font-size: 0.75rem;
+      font-size: 0.775rem;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      color: var(--text);
     }
 
     .contact-email {
-      font-size: 0.675rem;
+      font-size: 0.7rem;
       color: var(--text-muted);
       white-space: nowrap;
       overflow: hidden;
@@ -445,29 +454,33 @@
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
 
-    /* セミコロン区切りアドレスカード（1行構成） */
+    /* セミコロン区切りアドレスカード（1行構成・主役化アクセント） */
     .email-card {
       flex-shrink: 0;
-      padding: 6px 12px;
+      padding: 8px 14px;
+      background: #f0f7ff;
+      border: 1px solid #bfdbfe;
+      border-left: 5px solid var(--primary);
+      box-shadow: 0 2px 5px rgba(37, 99, 235, 0.08);
     }
 
     .email-control-row {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
     }
 
     .email-title-group {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       flex-shrink: 0;
     }
 
     .email-label {
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: #0f172a;
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: var(--primary-dark);
       white-space: nowrap;
     }
 
@@ -483,8 +496,8 @@
       height: 42px;
       min-height: 42px;
       max-height: 42px;
-      padding: 6px 8px 4px 8px;
-      border: 1px solid var(--border);
+      padding: 6px 10px 4px 10px;
+      border: 1px solid #cbd5e1;
       border-radius: var(--radius);
       font-size: 0.825rem;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -494,6 +507,7 @@
       resize: none;
       line-height: 20px;
       scrollbar-width: thin;
+      background: #ffffff;
       transition: border-color 0.2s, box-shadow 0.2s;
     }
 
@@ -528,9 +542,15 @@
       flex-shrink: 0;
     }
 
+    #btn-clear:hover {
+      background-color: #fee2e2;
+      border-color: #fca5a5;
+      color: #b91c1c;
+    }
+
     .unmatched-notice {
-      margin-top: 4px;
-      padding: 3px 8px;
+      margin-top: 6px;
+      padding: 4px 10px;
       background: #fff7ed;
       border: 1px solid #ffedd5;
       border-radius: 4px;
